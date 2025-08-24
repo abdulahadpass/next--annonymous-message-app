@@ -1,9 +1,11 @@
 import { User } from "@/models/User";
 import { connectDb } from "@/lib/connectDb";
 import bcrypt from "bcryptjs";
+import { sendVerificationEmail } from "@/helper/sendVerificationEmail";
 
 export async function POST(req: Request) {
   try {
+    connectDb()
     const { username, email, password } = await req.json();
 
     if ([username, email, password].some((fields) => fields === "")) {
@@ -48,7 +50,7 @@ export async function POST(req: Request) {
        const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1);
       
-     const user = await User.create({
+      await User.create({
         username,
         email,
         password :hashedPassword,
@@ -62,8 +64,24 @@ export async function POST(req: Request) {
 
      // verification email
 
+     const emailResponse = sendVerificationEmail(username, email, verificationCode)
+
+     if (!(await emailResponse).success) {
+      return Response.json(
+        {
+          success: false,
+          message: (await emailResponse).message
+        },
+        { status: 500 }
+      );
+    }
+    return Response.json({
+      success : true
+    }
+    )
     }
   } catch (error) {
-    console.log("Error while signning- up", error);
+    console.log("Error while signning-up", error);
+    return Response.json({success : false, message : 'Error while signning-up'})
   }
 }
