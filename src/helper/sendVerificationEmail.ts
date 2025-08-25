@@ -6,7 +6,6 @@ export const sendVerificationEmail = async (
   username: string,
   email: string,
   verifyCode: string): Promise<ApiResponse> => {
-    console.log(email);
     
   try {
      await resend.emails.send({
