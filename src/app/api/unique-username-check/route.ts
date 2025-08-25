@@ -8,7 +8,7 @@ const usernameValidationSchema = z.object({
   username: usernameValidation,
 });
 
-export async function POST(req: Request) {
+export async function GET(req: Request) {
   try {
     await connectDb();
     const { searchParams } = new URL(req.url);
@@ -32,10 +32,10 @@ export async function POST(req: Request) {
     if (uniqueUsername) {
       return Response.json({
         success: false,
-        message: "Username must be unique b",
+        message: "Username must be unique",
       });
     }
-    return Response.json({ success: true, message: "Username is unique b" });
+    return Response.json({ success: true, message: "Username is unique" });
   } catch (error) {
     console.log("Error while checking username uniqness", error);
   }
