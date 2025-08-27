@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -24,6 +25,7 @@ const Page = () => {
   const [username, setUsername] = useState("");
   const [loading, setIsloading] = useState(false);
   const [submitting, setIsSubmittig] = useState(false);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [message, setMessage] = useState("");
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
@@ -33,21 +35,19 @@ const Page = () => {
       password: "",
     },
   });
-  const debounce = useDebounceCallback(setUsername, 500);
+  const debounce = useDebounceCallback(setUsername, 300);
 
   const route = useRouter();
 
   useEffect(() => {
     const uniquenessUsername = async () => {
       setIsloading(true);
-      setIsloading(true);
+      setMessage('')
       try {
         const res = await axios.get<ApiResponse>(
           `/api/unique-username-check?username=${username}`
         );
-        toast(res.data.message);
-
-        uniquenessUsername();
+        setMessage(res.data.message);
       } catch (error) {
         const axiosError = error as AxiosError<ApiResponse>;
         setMessage(
@@ -58,7 +58,8 @@ const Page = () => {
         setIsloading(false);
       }
     };
-  }, [debounce]);
+    uniquenessUsername();
+  }, [username]);
 
   const onSubmit = async (data: z.infer<typeof signupSchema>) => {
     try {
@@ -94,8 +95,8 @@ const Page = () => {
                       setUsername(e.target.value);
                     }}
                   />
-                  {username && <Loader2 className="animate-spin" />}
-                  {!username && message && (
+                  {isCheckingUsername && <Loader2 className="animate-spin" />}
+                  {!isCheckingUsername && message && (
                     <p
                       className={`text-sm ${
                         message === "Username is unique"
