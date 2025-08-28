@@ -59,16 +59,16 @@ const Page = () => {
       }
     };
     uniquenessUsername();
-  }, [username]);
+  }, [username,debounce]);
 
   const onSubmit = async (data: z.infer<typeof signupSchema>) => {
     try {
-      const res = await axios.post<ApiResponse>(`/api/sign-up`, { data });
-      toast(res.data.message);
+      const res = await axios.post<ApiResponse>(`/api/sign-up`,  data );
+      toast.success(res.data.message);
       route.replace(`/verify/${username}`);
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
-      toast(axiosError.response?.data.message);
+      toast.dismiss(axiosError.response?.data.message);
     }
   };
   return (

@@ -5,7 +5,7 @@ import { sendVerificationEmail } from "@/helper/sendVerificationEmail";
 
 export async function POST(req: Request) {
   try {
-    connectDb()
+    connectDb();
     const { username, email, password } = await req.json();
 
     if ([username, email, password].some((fields) => fields === "")) {
@@ -30,58 +30,67 @@ export async function POST(req: Request) {
     }
 
     const userByEmail = await User.findOne({ email });
-     const verificationCode = Math.floor(
+    const verificationCode = Math.floor(
       100000 + Math.random() * 900000
-    ).toString()
+    ).toString();
 
     if (userByEmail) {
-        if(userByEmail?.isVerified){
-            return Response.json({success : false, message : 'user is already exist'}, {status : 400})
-        }else{
-            const hashedPassword = await bcrypt.hash(password, 10)
-            userByEmail.password = hashedPassword
-            userByEmail.isVerified = true
-            userByEmail.verifyCodeExpiry = new Date(Date.now() * 3600000)
+      if (userByEmail?.isVerified) {
+        return Response.json(
+          { success: false, message: "user is already exist" },
+          { status: 400 }
+        );
+      } else {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        userByEmail.password = hashedPassword;
+        userByEmail.isVerified = true;
+        userByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000);
 
-            await userByEmail.save()
-        }
+        await userByEmail.save();
+      }
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
-       const expiryDate = new Date();
+      const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1);
-      
+
       await User.create({
         username,
         email,
-        password :hashedPassword,
-        isVerified : false,
-        verifyCode:verificationCode,
-        verifyCodeExpiry : expiryDate,
-        isAcceptingMessages : false,
-        message : []
-     })
+        password: hashedPassword,
+        isVerified: false,
+        verifyCode: verificationCode,
+        verifyCodeExpiry: expiryDate,
+        isAcceptingMessages: false,
+        message: [],
+      });
+    }
+    // verification email
 
+    const emailResponse = sendVerificationEmail(
+      username,
+      email,
+      verificationCode
+    );
+console.log(emailResponse);
 
-     // verification email
-
-     const emailResponse = sendVerificationEmail(username, email, verificationCode)
-
-     if (!(await emailResponse).success) {
+    if (!(await emailResponse).success) {
       return Response.json(
         {
           success: false,
-          message: (await emailResponse).message
+          message: (await emailResponse).message,
         },
         { status: 500 }
       );
     }
     return Response.json({
-      success : true
-    }
-    )
-    }
+      success: true,
+      message : 'Register successfully'
+    });
   } catch (error) {
     console.log("Error while signning-up", error);
-    return Response.json({success : false, message : 'Error while signning-up'})
+    return Response.json({
+      success: false,
+      message: "Error while signning-up",
+    });
   }
 }
