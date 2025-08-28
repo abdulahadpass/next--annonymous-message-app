@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
                 email : credentials.identifier
             },
             {
-                passsword : credentials.identifier
+                username : credentials.identifier
             }],
           });
 
@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
             throw new Error('user is not verified')
           }
 
-          const isCorrectedPassword = await bcrypt.compare(credentials.passsword, user.password)
+          const isCorrectedPassword = await bcrypt.compare(credentials.password, user.password)
           if(isCorrectedPassword){
             return user
           }else{
