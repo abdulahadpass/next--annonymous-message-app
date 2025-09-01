@@ -15,7 +15,6 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, RefreshCcw } from "lucide-react";
 import { MessageCard } from "@/components/MessageCard";
-import { useRouter } from "next/navigation";
 const Page = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,9 +26,8 @@ const Page = () => {
   const form = useForm<z.infer<typeof isAcceptingMessagesSchema>>({
     resolver: zodResolver(isAcceptingMessagesSchema),
   });
-  const { register, handleSubmit, watch, setValue } = form;
+  const { register, watch, setValue } = form;
   
-  const router = useRouter();
   const acceptMessage = watch("acceptMessage");
 
   const handleDelete = async (messageId: string) => {
@@ -40,7 +38,6 @@ const Page = () => {
     setIsSwitch(true);
     try {
       const res = await axios.get<ApiResponse>(`/api/isAcceptingMessage`);
-      console.log(res)
       setValue("acceptMessage", res.data.isAcceptingMessages );
       toast(res.data.message);
     } catch (error) {
@@ -101,14 +98,14 @@ const Page = () => {
     }
   };
   if (!session || !session.user) {
-    router.replace('/sign-up')
     return
   }
 
-  const { email} = user;
+  const {username} = user
+console.log(user);
 
   const baseUrl = ` ${window.location.protocol}/${window.location.host}`;
-  const personUrl = `${baseUrl}/${email}`;
+  const personUrl = `${baseUrl}/u/${username}`;
 
   const copyToClipBoard = () => {
     navigator.clipboard.writeText(personUrl);

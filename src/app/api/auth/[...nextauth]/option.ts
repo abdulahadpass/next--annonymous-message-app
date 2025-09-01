@@ -11,67 +11,71 @@ export const authOptions: NextAuthOptions = {
       name: "Credentials",
 
       credentials: {
-        email: { label: "Email", tyoe: "text" },
+        email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials: any): Promise<any> {
         await connectDb();
         try {
           const user = await User.findOne({
-            $or: [{
-                email : credentials.identifier
-            },
-            {
-                username : credentials.identifier
-            }],
+            $or: [
+              {
+                email: credentials.identifier,
+              },
+              {
+                username: credentials.identifier,
+              },
+            ],
           });
 
-          if(!user){
-            throw new Error('user not found')
+          if (!user) {
+            throw new Error("user not found");
           }
-          if(!user.isVerified){
-            throw new Error('user is not verified')
-          }
-
-          const isCorrectedPassword = await bcrypt.compare(credentials.password, user.password)
-          if(isCorrectedPassword){
-            return user
-          }else{
-             throw new Error("please check the password");
+          if (!user.isVerified) {
+            throw new Error("user is not verified");
           }
 
-        } catch (error : any) {
-            console.log(error);
-            throw new Error(error)
+          const isCorrectedPassword = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+          if (isCorrectedPassword) {
+            return user;
+          } else {
+            throw new Error("please check the password");
+          }
+        } catch (error: any) {
+          console.log(error);
+          throw new Error(error);
         }
       },
     }),
   ],
-  pages : {
-    signIn : '/sign-in'
+  pages: {
+    signIn: "/sign-in",
   },
-  session : {
-    strategy : 'jwt'
+  session: {
+    strategy: "jwt",
   },
-  secret : process.env.NEXT_AUTH_SECRET_KEY,
+  secret: process.env.NEXT_AUTH_SECRET_KEY,
   callbacks: {
-  async jwt({ token, user }) {
-    if(user){
-        token._id = user._id?.toString()
-        token.isVerified = user.isVerified
-        token.email = user.email
-        token.isAcceptingMessages = user.isAcceptingMessages
-    }
-   return token
+    async jwt({ token, user }) {
+      if (user) {
+        token._id = user._id?.toString();
+        token.isVerified = user.isVerified;
+        token.username = user.username;
+        token.isAcceptingMessages = user.isAcceptingMessages;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user._id = token._id?.toString();
+        session.user.isVerified = token.isVerified;
+        session.user.isAcceptingMessages = token.isAcceptingMessages;
+        session.user.username = token.username;
+      }
+      return session;
+    },
   },
-  async session({ session, token }) {
-    if(token){
-        session.user._id = token._id?.toString()
-        session.user.isVerified = token.isVerified
-        session.user.username = token.username
-        session.user.isAcceptingMessages = token.isAcceptingMessages
-    }
-    return session
-  }
-}
 };

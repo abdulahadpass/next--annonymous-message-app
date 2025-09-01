@@ -20,20 +20,22 @@ export async function GET(req: Request) {
   try {
     const getMessages = await Model.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(userId) } },
-      { $unwind: "$message" },
-      { $sort: { "$message.createdAt": -1 } },
-      { $group: { _id: "$_id", message: { $push: "$message" } } },
+      { $unwind: "$messages" },
+      { $sort: { "messages.createdAt": -1 } },
+      { $group: { _id: "$_id", messages: { $push: "$messages" } } },
     ]);
     if (!getMessages || getMessages.length === 0) {
       return Response.json({
         success: false,
-        message: "no messages",
+        message : 'no messages',
+        messages: [],
        
       });
     }
     return Response.json({
       success: true,
-      message: getMessages[0].messages,
+      message : 'message fetched successfully',
+      messages: getMessages[0].messages,
     });
   } catch (error) {
     console.log("Error while get messages", error);
