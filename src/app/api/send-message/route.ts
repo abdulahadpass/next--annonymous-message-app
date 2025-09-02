@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     }
     const newMessage = { content, createdAt: new Date() };
 
-    foundUser.message.push(newMessage as Message);
+    foundUser.messages.push(newMessage as Message);
 
     await foundUser.save();
     return Response.json({
